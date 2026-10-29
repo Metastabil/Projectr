@@ -1,0 +1,28 @@
+{
+  "name": "metastabil/projectr",
+  "description": "A lightweight framework for developing PHP web applications and REST APIs",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Julius Derigs",
+      "email": "info@julius-derigs.de"
+    }
+  ],
+  "require": {
+    "ext-pdo": "*",
+    "php": "^8.5",
+    "vlucas/phpdotenv": "^5.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "Respondr\\Core\\": "src/",
+      "App\\": "app/"
+    }
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
