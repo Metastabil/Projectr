@@ -38,8 +38,19 @@ final class Route {
             throw new InvalidArgumentException('Route method must be a valid HTTP method token.');
         }
 
-        if ($path === '' || $path[0] !== '/' || preg_match('/[\x00-\x20\x7F]/', $path) === 1) {
-            throw new InvalidArgumentException('Route path must start with "/" and contain no control characters or spaces.');
+        if (
+            $path === ''
+            || $path[0] !== '/'
+            || preg_match('/[\x00-\x20\x7F]/', $path) === 1
+            || str_contains($path, '\\')
+            || str_contains($path, '?')
+            || str_contains($path, '#')
+        ) {
+            throw new InvalidArgumentException('Route path must be an absolute path without control characters, spaces, or query and fragment delimiters.');
+        }
+
+        if (!self::hasValidPathParameters($path)) {
+            throw new InvalidArgumentException('Route path contains an invalid or duplicate parameter.');
         }
 
         if (!self::isValidClassName($controller)) {
@@ -89,6 +100,34 @@ final class Route {
 
         return array_all(explode('\\', $class), fn($segment) => self::isValidIdentifier($segment));
 
+    }
+
+    /**
+     * Validates `{name}` placeholders and ensures their names are unique.
+     *
+     * @param string $path Route path to inspect.
+     * @return bool True when all braces belong to valid, unique parameters.
+     */
+    private static function hasValidPathParameters(string $path): bool {
+        preg_match_all('/\{([^{}]*)\}/', $path, $matches);
+        $withoutParameters = preg_replace('/\{[^{}]*\}/', '', $path);
+
+        if ($withoutParameters === null
+            || str_contains($withoutParameters, '{')
+            || str_contains($withoutParameters, '}')) {
+            return false;
+        }
+
+        $names = [];
+        foreach ($matches[1] as $name) {
+            if (!self::isValidIdentifier($name) || isset($names[$name])) {
+                return false;
+            }
+
+            $names[$name] = true;
+        }
+
+        return true;
     }
 
     /**
