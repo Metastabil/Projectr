@@ -5,6 +5,7 @@ namespace Projectr\Core\Infrastructure;
 
 use RuntimeException;
 use JsonException;
+use Throwable;
 
 /**
  * Provides methods for encoding and decoding JSON data.
@@ -29,7 +30,7 @@ class JsonSerializer {
     public static function encode(mixed $data): string {
         try {
             return json_encode($data, JSON_THROW_ON_ERROR, self::MAX_DEPTH);
-        } catch (JsonException $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException('JSON encoding failed.', 0, $exception);
         }
     }

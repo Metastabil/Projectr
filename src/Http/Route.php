@@ -34,7 +34,7 @@ final class Route {
      */
     public static function define(string $method, string $path, string $controller, string $action, array $middlewares = []): array {
         $method = strtoupper($method);
-        if (preg_match('/^[!#$%&\'*+.^_`|~-]+$/D', $method) !== 1) {
+        if (preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/D', $method) !== 1) {
             throw new InvalidArgumentException('Route method must be a valid HTTP method token.');
         }
 

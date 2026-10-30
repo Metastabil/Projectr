@@ -79,6 +79,8 @@ class Logger {
             }
 
             try {
+                self::assertOpenedFileMatchesPath($handle, $path);
+
                 if (DIRECTORY_SEPARATOR !== '\\' && !@chmod($path, 0600)) {
                     throw new RuntimeException('Unable to secure log file permissions.');
                 }
@@ -183,7 +185,41 @@ class Logger {
             $current = $resolvedDirectory;
         }
 
+        if (DIRECTORY_SEPARATOR !== '\\' && !@chmod($current, 0700)) {
+            throw new RuntimeException('Unable to secure log directory permissions.');
+        }
+
         return $current;
+    }
+
+    /**
+     * Detects a symlink or path replacement between the pre-open check and the write.
+     *
+     * @param resource $handle Open log file handle.
+     * @param string $path Log file path.
+     * @return void
+     * @throws RuntimeException If the path does not identify the opened regular file.
+     */
+    private static function assertOpenedFileMatchesPath($handle, string $path): void {
+        if (is_link($path)) {
+            throw new RuntimeException('Log file must not be a symbolic link.');
+        }
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            return;
+        }
+
+        $openedStat = @fstat($handle);
+        $pathStat = @lstat($path);
+        if (
+            $openedStat === false
+            || $pathStat === false
+            || (($pathStat['mode'] & 0170000) !== 0100000)
+            || $openedStat['dev'] !== $pathStat['dev']
+            || $openedStat['ino'] !== $pathStat['ino']
+        ) {
+            throw new RuntimeException('Log file path changed while it was being opened.');
+        }
     }
 
     /**

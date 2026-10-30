@@ -245,8 +245,8 @@ class Session {
     }
 
     /**
-     * Determines whether secure cookies should be used based on the application configuration
-     * and the nature of the current request.
+     * Determines whether secure cookies should be used based on HTTPS, the explicit setting,
+     * and the application environment. Production always requires secure cookies.
      *
      * @return bool True if secure cookies should be used, false otherwise.
      */
@@ -255,7 +255,8 @@ class Session {
             $_ENV['APP_SESSION_COOKIE_SECURE'] ?? false,
             FILTER_VALIDATE_BOOL
         );
+        $environment = strtolower((string) ($_ENV['APP_ENV'] ?? 'production'));
 
-        return self::isSecureRequest() || $configuredSecure;
+        return self::isSecureRequest() || $configuredSecure || $environment === 'production';
     }
 }

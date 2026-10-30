@@ -11,8 +11,8 @@
  */
 
 return [
-    'baseUrl' => 'http://localhost:8080/',
-    'environment' => 'production',
-    'logDir' => '/storage/logs',
-    'locale' => ''
+    'baseUrl' => $_ENV['BASE_URL'] ?? 'http://localhost:8080/',
+    'environment' => $_ENV['APP_ENV'] ?? 'production',
+    'logDir' => $_ENV['APP_LOG_DIR'] ?? 'storage/logs',
+    'locale' => $_ENV['APP_LOCALE'] ?? 'en_US',
 ];

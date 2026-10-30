@@ -66,6 +66,50 @@ final class Router {
     }
 
     /**
+     * Registers a list of route definitions atomically.
+     *
+     * Routes are validated against each other and the existing registry before
+     * any of them are committed.
+     *
+     * @param list<array{method: string, path: string, action: string, middlewares?: list<string>}> $definitions
+     * @return void
+     * @throws InvalidArgumentException If a definition is malformed, invalid, or duplicated.
+     */
+    public static function registerMany(array $definitions): void {
+        if (!array_is_list($definitions)) {
+            throw new InvalidArgumentException('Route definitions must be provided as a list.');
+        }
+
+        $routes = self::$routes;
+        foreach ($definitions as $definition) {
+            if (!is_array($definition)) {
+                throw new InvalidArgumentException('Each route definition must be an array.');
+            }
+
+            $method = $definition['method'] ?? null;
+            $path = $definition['path'] ?? null;
+            $action = $definition['action'] ?? null;
+            $middlewares = $definition['middlewares'] ?? [];
+
+            if (
+                !is_string($method)
+                || !is_string($path)
+                || !is_string($action)
+                || !is_array($middlewares)
+                || !array_is_list($middlewares)
+            ) {
+                throw new InvalidArgumentException('Route definition fields have invalid types.');
+            }
+
+            $route = self::createRoute($method, $path, $action, $middlewares);
+            self::assertRouteIsUnique($route, $routes);
+            $routes[] = $route;
+        }
+
+        self::$routes = $routes;
+    }
+
+    /**
      * Registers a route by parsing its controller action and normalizing handler classes.
      *
      * Bare controller and middleware class names are resolved in `App\\Controllers`
@@ -92,7 +136,6 @@ final class Router {
         return $route;
     }
 
-    /**
     /**
      * Creates a validated route definition through the shared `Route` API.
      *
@@ -297,7 +340,7 @@ final class Router {
      * @return bool True when the value contains only valid token characters.
      */
     private static function isValidHttpMethod(string $method): bool {
-        return preg_match('/^[!#$%&\'*+.^_`|~-]+$/D', $method) === 1;
+        return preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/D', $method) === 1;
     }
 
     /**

@@ -57,28 +57,7 @@ final class Kernel {
             throw new RuntimeException('Route configuration must be a list.');
         }
 
-        foreach ($routes as $route) {
-            if (!is_array($route)) {
-                throw new RuntimeException('Each configured route must be an array.');
-            }
-
-            $method = $route['method'] ?? null;
-            $path = $route['path'] ?? null;
-            $action = $route['action'] ?? null;
-            $middlewares = $route['middlewares'] ?? [];
-
-            if (
-                !is_string($method)
-                || !is_string($path)
-                || !is_string($action)
-                || !is_array($middlewares)
-                || !array_is_list($middlewares)
-            ) {
-                throw new RuntimeException('Configured route fields have invalid types.');
-            }
-
-            Router::register($method, $path, $action, $middlewares);
-        }
+        Router::registerMany($routes);
 
         self::$booted = true;
     }
